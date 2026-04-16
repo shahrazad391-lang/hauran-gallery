@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HAURAN • Visual Echoes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Amiri:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Playfair Display', serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 2s ease;
+    }
+
+    .title { color: #d4af77; text-shadow: 0 6px 20px rgba(0,0,0,0.9); letter-spacing: 8px; }
+    .arabic-title { font-family: 'Amiri', serif; color: #d4af77; letter-spacing: 10px; }
+
+    .frame {
+      background: #f5e8c7;
+      padding: 10px 8px 28px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.75), inset 0 0 25px rgba(139,69,19,0.4), 0 0 0 8px #3c2f1f;
+      border-radius: 8px;
+      transition: all 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      position: absolute;
+      width: 200px;
+      cursor: pointer;
+    }
+
+    .media-container {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      border-radius: 6px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .media-container img, .media-container video {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+
+    .gallery-container {
+      position: relative;
+      width: 100%;
+      height: 680px;
+      margin-top: 80px;
+    }
+
+    .input-box {
+      background: rgba(255,255,255,0.95);
+      border: 3px solid #3c2f1f;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+      width: 320px; /* أصغر للنصف */
+    }
+  </style>
+</head>
+<body>
+
+  <div class="max-w-7xl mx-auto py-8 px-8 relative">
+    <!-- مربع الإدخال في أعلى اليسار -->
+    <div class="absolute top-8 left-8 z-50">
+      <div class="input-box rounded-3xl p-4">
+        <p class="text-gray-800 text-xs font-medium mb-2 text-center">Paste link</p>
+        <div class="flex gap-2">
+          <input id="mediaUrl" type="text" placeholder="https://..." 
+                 class="flex-1 px-4 py-3 text-gray-900 rounded-2xl text-sm focus:outline-none">
+          <button onclick="addMedia()" 
+                  class="bg-[#8b4513] hover:bg-[#a67c52] text-white px-6 rounded-2xl text-xs font-semibold">
+            ADD
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- العنوان في الوسط -->
+    <div class="text-center">
+      <h1 class="title text-5xl md:text-6xl font-bold">HAURAN</h1>
+      <h2 class="arabic-title text-3xl md:text-4xl mt-1">صدى بصري</h2>
+      <p class="text-amber-200 text-sm mt-3">Visual Echoes • معرض الإطارات القديمة</p>
+    </div>
+
+    <!-- المعرض (حول العنوان) -->
+    <div id="gallery" class="gallery-container mx-auto"></div>
+  </div>
+
+  <script>
+    const gallery = document.getElementById('gallery');
+    const input = document.getElementById('mediaUrl');
+
+    const backgrounds = [
+  "https://i.postimg.cc/zDdkCHDw/grok-image-9mfqxn.jpg",  // الصورة الأولى
+      "https://i.postimg.cc/SQZG6YQC/grok-image-4afwje.jpg",  // الثانية
+      "https://i.postimg.cc/tRrz3nRh/1764331802928.png",  // الثالثة
+      "https://i.postimg.cc/NjnVpPgf/grok-image-xsbycz4.jpg",  // الرابعة
+      "https://i.postimg.cc/RZhy1zzr/grok-image-ri3grh.jpg"   // الخامسة
+    ];
+
+    let mediaList = JSON.parse(localStorage.getItem('hauranGallery')) || [];
+
+    function renderAndAnimate() {
+      gallery.innerHTML = '';
+
+      mediaList.forEach((url, index) => {
+        const item = document.createElement('div');
+        item.className = 'frame';
+        
+        // موقع عشوائي حول العنوان مع تراكب خفيف
+        const left = 15 + Math.random() * 70;
+        const top = 10 + Math.random() * 60;
+        const rotate = Math.random() * 14 - 7;
+        item.style.left = `${left}%`;
+        item.style.top = `${top}%`;
+        item.style.transform = `rotate(${rotate}deg)`;
+        item.style.zIndex = Math.floor(Math.random() * 10) + 1; // تراكب
+
+        if (url.match(/\.(mp4|webm|ogg)$/i)) {
+          item.innerHTML = `<div class="media-container"><video src="${url}" autoplay loop muted playsinline></video></div>`;
+        } else {
+          item.innerHTML = `<div class="media-container"><img src="${url}" onerror="this.src='https://picsum.photos/id/1015/600/600'"></div>`;
+        }
+
+        gallery.appendChild(item);
+      });
+    }
+
+    function addMedia() {
+      const url = input.value.trim();
+      if (!url) return;
+      mediaList.unshift(url);
+      localStorage.setItem('hauranGallery', JSON.stringify(mediaList));
+      renderAndAnimate();
+      input.value = '';
+    }
+
+    input.addEventListener('keypress', e => { if (e.key === 'Enter') addMedia(); });
+
+    function changeBackground() {
+      const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+      document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.75)), url('${randomBg}')`;
+    }
+
+    // أنيميشن التبعثر البطيء + التجمع حول العنوان
+    function scatterAndRegroup() {
+      const items = Array.from(gallery.children);
+      
+      // مرحلة 1: تبعثر بطيء
+      items.forEach(item => {
+        item.style.transition = 'all 1.8s cubic-bezier(0.4, 0, 0.2, 1)';
+        const scatterX = (Math.random() - 0.5) * 800;
+        const scatterY = (Math.random() - 0.5) * 500;
+        item.style.transform = `translate(${scatterX}px, ${scatterY}px) rotate(${Math.random()*40 - 20}deg)`;
+      });
+
+      // مرحلة 2: تجمع بطيء في أماكن جديدة حول العنوان
+      setTimeout(() => {
+        renderAndAnimate();
+      }, 1800);
+    }
+
+    window.onload = () => {
+      changeBackground();
+      renderAndAnimate();
+      // أنيميشن التبعثر + التجمع عند كل تحديث
+      setTimeout(scatterAndRegroup, 800);
+    };
+  </script>
+</body>
+</html>
